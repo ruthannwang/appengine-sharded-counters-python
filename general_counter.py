@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 
 SHARD_KEY_TEMPLATE = 'shard-{}-{:d}'
 
-
+# [START configure]
 class GeneralCounterShardConfig(ndb.Model):
     """Tracks the number of shards for each named counter."""
     num_shards = ndb.IntegerProperty(default=20)
@@ -45,13 +45,13 @@ class GeneralCounterShardConfig(ndb.Model):
                              for index in range(config.num_shards)]
         return [ndb.Key(GeneralCounterShard, shard_key_string)
                 for shard_key_string in shard_key_strings]
-
+# [END configure]
 
 class GeneralCounterShard(ndb.Model):
     """Shards for each named counter."""
     count = ndb.IntegerProperty(default=0)
 
-
+# [START get_count]
 def get_count(name):
     """Retrieve the value for a given sharded counter.
 
@@ -59,7 +59,7 @@ def get_count(name):
         name: The name of the counter.
 
     Returns:
-        Integer; the cumulative count of all sharded counters for the given
+        Integer: the cumulative count of all sharded counters for the given
             counter name.
     """
     total = memcache.get(name)
@@ -71,8 +71,9 @@ def get_count(name):
                 total += counter.count
         memcache.add(name, total, 60)
     return total
+# [END get_count]
 
-
+# [START increment]
 def increment(name):
     """Increment the value for a given sharded counter.
 
@@ -102,7 +103,7 @@ def _increment(name, num_shards):
     counter.put()
     # Memcache increment does nothing if the name is not a key in memcache
     memcache.incr(name)
-
+# [END increment]
 
 @ndb.transactional
 def increase_shards(name, num_shards):
